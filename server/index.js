@@ -20,6 +20,7 @@ app.use(helmet());
 app.use(morgan('tiny'));
 app.use(cors());
 app.use(express.json());
+app.use(express.static('./public'));
 
 const schema = yup.object().shape({
   shortUrl: yup
@@ -35,8 +36,17 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/:id', (req, res) => {
-  //TODO: redirect
+app.get('/:id', async (req, res) => {
+  const { id: shortUrl } = req.params;
+  try {
+    const record = await urls.findOne({ shortUrl });
+    if (record) {
+      res.redirect(record.url);
+    }
+    res.redirect('/?error=${shortUrl} not found');
+  } catch (error) {
+    res.redirect('/?error=URL found');
+  }
 });
 
 app.post('/url', async (req, res, next) => {
