@@ -9,6 +9,11 @@ const { nanoid } = require('nanoid');
 require('dotenv').config();
 
 const db = monk(process.env.MONGO_DB_URI);
+const urls = db.get('urls');
+
+// Db will raise an error in case of collision
+urls.createIndex({ shortUrl: 1 }, { unique: true });
+
 const app = express();
 
 app.use(helmet());
@@ -44,10 +49,14 @@ app.post('/url', async (req, res, next) => {
     if (!shortUrl) {
       shortUrl = nanoid(5);
     }
-    res.json({
-      shortUrl,
+    console.log(`Orig Url :${url}`);
+    console.log(`Short Url :${shortUrl}`);
+    const newUrl = {
       url,
-    });
+      shortUrl,
+    };
+    const created = await urls.insert(newUrl);
+    res.json(created);
   } catch (error) {
     next(error);
   }
