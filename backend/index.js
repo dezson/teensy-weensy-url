@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
+const yup = require('yup');
+const { nanoid } = require('nanoid');
 
 const app = express();
 
@@ -9,6 +11,14 @@ app.use(helmet());
 app.use(morgan('tiny'));
 app.use(cors());
 app.use(express.json());
+
+const schema = yup.object().shape({
+  shortUrl: yup
+    .string()
+    .trim()
+    .matches(/[\w\-]/i),
+  url: yup.string().trim().url().required(),
+});
 
 app.get('/', (req, res) => {
   res.json({
@@ -20,12 +30,39 @@ app.get('/:id', (req, res) => {
   //TODO: redirect
 });
 
-app.post('/url', (req, res) => {
-  //TODO: short url comes here
+app.post('/url', async (req, res, next) => {
+  let { shortUrl, url } = req.body;
+  try {
+    await schema.validate({
+      shortUrl,
+      url,
+    });
+    if (!shortUrl) {
+      shortUrl = nanoid(5);
+    }
+    res.json({
+      shortUrl,
+      url,
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get('/url/:id', (req, res) => {
   //TODO: get a short url by id
+});
+
+app.use((error, req, res, next) => {
+  if (error.status) {
+    res.status(error.status);
+  } else {
+    res.status(500);
+  }
+  res.json({
+    message: error.message,
+    stack: process.env.NODE_ENV == 'production' ? '🥞' : error.stack,
+  });
 });
 
 const port = process.env.PORT || 6789;
