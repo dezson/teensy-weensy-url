@@ -16,6 +16,18 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get('/:id', (req, res) => {
+  //TODO: redirect
+});
+
+app.post('/url', (req, res) => {
+  //TODO: short url comes here
+});
+
+app.get('/url/:id', (req, res) => {
+  //TODO: get a short url by id
+});
+
 const port = process.env.PORT || 6789;
 
 app.listen(port, () => {
