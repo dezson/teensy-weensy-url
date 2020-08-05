@@ -3,8 +3,12 @@ const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const yup = require('yup');
+const monk = require('monk');
 const { nanoid } = require('nanoid');
 
+require('dotenv').config();
+
+const db = monk(process.env.MONGO_DB_URI);
 const app = express();
 
 app.use(helmet());
